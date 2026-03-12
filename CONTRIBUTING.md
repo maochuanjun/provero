@@ -1,12 +1,12 @@
-# Contributing to Apache Assay
+# Contributing to Assay
 
-Thank you for your interest in contributing to Apache Assay!
+Thank you for your interest in contributing to Assay!
 
 ## How to Contribute
 
 ### Reporting Issues
 
-Use [GitHub Issues](https://github.com/apache/assay/issues) to report bugs or request features.
+Use [GitHub Issues](https://github.com/andreahlert/assay/issues) to report bugs or request features.
 
 ### Submitting Changes
 
@@ -25,14 +25,7 @@ Use [GitHub Issues](https://github.com/apache/assay/issues) to report bugs or re
 
 ### Contributor License Agreement
 
-All contributors must sign the [Apache ICLA](https://www.apache.org/licenses/icla.pdf)
-before their contributions can be merged.
-
 ### Communication
 
-- Dev mailing list: dev@assay.apache.org
 - GitHub Discussions for questions and ideas
-
-## Code of Conduct
-
-This project follows the [Apache Software Foundation Code of Conduct](https://www.apache.org/foundation/policies/conduct.html).
+- GitHub Issues for bug reports and feature requests

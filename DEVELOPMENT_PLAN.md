@@ -1,4 +1,4 @@
-# Apache Assay - Development Plan
+# Assay - Development Plan
 
 ## Overview
 
@@ -139,7 +139,7 @@ incubation proposal. Each phase has clear deliverables and success criteria.
 - [ ] Integration tests with Airflow 2.9+ and 3.0
 - [ ] Example DAGs
 - [ ] Documentation: Airflow integration guide
-- [ ] Publish to PyPI as apache-airflow-providers-assay
+- [ ] Publish to PyPI as assay-airflow
 
 ### Success Criteria
 

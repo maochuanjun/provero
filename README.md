@@ -1,4 +1,4 @@
-# Apache Assay
+# Assay
 
 > **assay** /ˈæseɪ/ - the testing of a substance to determine its quality or purity.
 
@@ -7,7 +7,7 @@ A vendor-neutral, declarative data quality engine with built-in anomaly detectio
 ## Quickstart
 
 ```bash
-pip install apache-assay
+pip install assay
 assay init
 ```
 

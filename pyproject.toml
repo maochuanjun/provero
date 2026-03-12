@@ -1,12 +1,12 @@
 [project]
-name = "apache-assay"
+name = "assay"
 version = "0.1.0-dev"
 description = "A vendor-neutral, declarative data quality engine with built-in anomaly detection"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.11"
 authors = [
-    { name = "Apache Assay Contributors" },
+    { name = "Assay Contributors" },
 ]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
@@ -37,14 +37,14 @@ dependencies = [
 postgres = ["psycopg[binary]>=3.1"]
 snowflake = ["snowflake-sqlalchemy>=1.6"]
 bigquery = ["sqlalchemy-bigquery>=1.11"]
-redshift = ["sqlalchemy-redshift>=0.8"]
+redshift = ["redshift-connector>=2.1"]
 kafka = ["confluent-kafka>=2.3"]
 anomaly = ["scipy>=1.11", "numpy>=1.26"]
 prophet = ["prophet>=1.1"]
 airflow = ["apache-airflow>=2.9"]
 server = ["fastapi>=0.110", "uvicorn>=0.29"]
 all = [
-    "apache-assay[postgres,snowflake,bigquery,anomaly,server]",
+    "assay[postgres,snowflake,bigquery,anomaly,server]",
 ]
 dev = [
     "pytest>=8.0",
@@ -60,10 +60,9 @@ dev = [
 assay = "assay.cli.main:app"
 
 [project.urls]
-Homepage = "https://assay.apache.org"
-Repository = "https://github.com/apache/assay"
-Issues = "https://github.com/apache/assay/issues"
-Documentation = "https://assay.apache.org/docs"
+Homepage = "https://github.com/andreahlert/assay"
+Repository = "https://github.com/andreahlert/assay"
+Issues = "https://github.com/andreahlert/assay/issues"
 
 [build-system]
 requires = ["hatchling>=1.21"]

@@ -15,6 +15,6 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Apache Assay - A vendor-neutral, declarative data quality engine."""
+"""Assay - A vendor-neutral, declarative data quality engine."""
 
 __version__ = "0.1.0-dev"

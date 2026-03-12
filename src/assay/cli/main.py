@@ -29,13 +29,13 @@ from assay import __version__
 
 app = typer.Typer(
     name="assay",
-    help="Apache Assay - Data quality checks made simple.",
+    help="Assay - Data quality checks made simple.",
     no_args_is_help=True,
 )
 console = Console()
 
 TEMPLATE = """\
-# assay.yaml - Apache Assay configuration
+# assay.yaml - Assay configuration
 # Docs: https://assay.apache.org/docs
 
 source:
@@ -54,7 +54,7 @@ checks:
 
 @app.callback()
 def main() -> None:
-    """Apache Assay - Data quality checks made simple."""
+    """Assay - Data quality checks made simple."""
 
 
 @app.command()
