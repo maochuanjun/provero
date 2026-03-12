@@ -91,7 +91,7 @@ def run(
 
     from assay.core.compiler import compile_file
     from assay.core.engine import run_suite
-    from assay.connectors.duckdb import DuckDBConnector
+    from assay.connectors.factory import create_connector
 
     assay_config = compile_file(config)
 
@@ -99,8 +99,7 @@ def run(
         if suite and suite_config.name != suite:
             continue
 
-        # TODO: connector factory based on source type
-        connector = DuckDBConnector()
+        connector = create_connector(suite_config.source)
         result = run_suite(suite_config, connector)
 
         if output_format == "json":
@@ -148,6 +147,86 @@ def _print_table(result: "SuiteResult") -> None:
         if check.status == Status.FAIL and check.failing_rows_query:
             console.print(f"\n[red]FAILED:[/red] {check.check_name}")
             console.print(f"  Query: {check.failing_rows_query}")
+
+
+@app.command()
+def profile(
+    config: Path = typer.Option(Path("assay.yaml"), "--config", "-c", help="Config file path"),
+    table_name: str | None = typer.Option(None, "--table", "-t", help="Table to profile"),
+    suggest: bool = typer.Option(False, "--suggest", help="Suggest checks based on profile"),
+    sample: int | None = typer.Option(None, "--sample", help="Sample size for large tables"),
+) -> None:
+    """Profile a data source and optionally suggest checks."""
+    from assay.connectors.factory import create_connector
+    from assay.core.compiler import SourceConfig, compile_file
+    from assay.core.profiler import checks_to_yaml, profile_table, suggest_checks
+
+    if config.exists():
+        assay_config = compile_file(config)
+        source = assay_config.suites[0].source if assay_config.suites else SourceConfig(type="duckdb")
+        tbl = table_name or source.table
+    else:
+        source = SourceConfig(type="duckdb")
+        tbl = table_name or ""
+
+    if not tbl:
+        console.print("[red]No table specified. Use --table or define one in assay.yaml[/red]")
+        raise typer.Exit(1)
+
+    connector = create_connector(source)
+    connection = connector.connect()
+
+    try:
+        result = profile_table(connection, tbl, sample_size=sample)
+    finally:
+        connector.disconnect(connection)
+
+    # Print profile
+    tbl_display = Table(title=f"Profile: {result.table} ({result.row_count:,} rows)")
+    tbl_display.add_column("Column", style="cyan")
+    tbl_display.add_column("Type", style="dim")
+    tbl_display.add_column("Nulls", justify="right")
+    tbl_display.add_column("Distinct", justify="right")
+    tbl_display.add_column("Min")
+    tbl_display.add_column("Max")
+    tbl_display.add_column("Mean", justify="right")
+
+    for col in result.columns:
+        null_str = f"{col.null_count:,} ({col.null_pct}%)"
+        distinct_str = f"{col.distinct_count:,} ({col.distinct_pct}%)"
+        min_str = str(col.min_value) if col.min_value is not None else (str(col.min_length) + " chars" if col.min_length is not None else "-")
+        max_str = str(col.max_value) if col.max_value is not None else (str(col.max_length) + " chars" if col.max_length is not None else "-")
+        mean_str = str(col.mean_value) if col.mean_value is not None else (str(col.avg_length) + " chars" if col.avg_length is not None else "-")
+
+        tbl_display.add_row(col.name, col.dtype, null_str, distinct_str, min_str, max_str, mean_str)
+
+    console.print(tbl_display)
+
+    if suggest:
+        checks = suggest_checks(result)
+        console.print("\n[bold green]Suggested checks:[/bold green]\n")
+        yaml_output = checks_to_yaml(checks, source.type, tbl)
+        console.print(yaml_output)
+
+
+@app.command()
+def validate(
+    config: Path = typer.Option(Path("assay.yaml"), "--config", "-c", help="Config file path"),
+) -> None:
+    """Validate assay.yaml syntax without running checks."""
+    if not config.exists():
+        console.print(f"[red]Config file not found: {config}[/red]")
+        raise typer.Exit(1)
+
+    from assay.core.compiler import compile_file
+
+    try:
+        assay_config = compile_file(config)
+        total_checks = sum(len(s.checks) for s in assay_config.suites)
+        console.print(f"[green]Valid.[/green] {len(assay_config.suites)} suite(s), {total_checks} check(s)")
+    except Exception as e:
+        console.print(f"[red]Invalid:[/red] {e}")
+        raise typer.Exit(1)
 
 
 if __name__ == "__main__":

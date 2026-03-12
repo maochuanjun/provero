@@ -36,7 +36,11 @@ class DuckDBConnection:
         return [dict(zip(columns, row)) for row in result.fetchall()]
 
     def get_columns(self, table: str) -> list[dict[str, Any]]:
-        result = self._conn.execute(f"DESCRIBE {table}")
+        # For expressions like read_csv(...), use a subquery approach
+        if "(" in table:
+            result = self._conn.execute(f"DESCRIBE SELECT * FROM {table}")
+        else:
+            result = self._conn.execute(f"DESCRIBE {table}")
         return [
             {"name": row[0], "type": row[1], "nullable": row[2] == "YES"}
             for row in result.fetchall()
