@@ -26,37 +26,78 @@ from datetime import datetime, timezone
 from assay.checks.registry import get_check_runner
 from assay.connectors.base import Connector
 from assay.core.compiler import SuiteConfig
+from assay.core.optimizer import execute_batch, plan_batch
 from assay.core.results import CheckResult, Severity, Status, SuiteResult
 
 
-def run_suite(suite: SuiteConfig, connector: Connector) -> SuiteResult:
-    """Execute all checks in a suite against a data source."""
+def run_suite(
+    suite: SuiteConfig,
+    connector: Connector,
+    optimize: bool = True,
+) -> SuiteResult:
+    """Execute all checks in a suite against a data source.
+
+    When optimize=True (default), batchable checks are compiled into a
+    single SQL query. Non-batchable checks run individually after.
+    """
     run_id = str(uuid.uuid4())
-    suite_start = datetime.now(tz=timezone.utc)
+    suite_start = time.monotonic()
+    started_at = datetime.now(tz=timezone.utc)
 
     results: list[CheckResult] = []
-
     connection = connector.connect()
 
-    for check_config in suite.checks:
-        check_start = time.monotonic()
+    if optimize:
+        plan = plan_batch(suite.source.table, suite.checks)
 
-        runner = get_check_runner(check_config.check_type)
-        if runner is None:
-            results.append(
-                CheckResult(
-                    check_name=f"{check_config.check_type}:{check_config.column or ''}",
-                    check_type=check_config.check_type,
+        # Execute batched checks (single query)
+        if plan.metrics:
+            batch_start = time.monotonic()
+            try:
+                batch_results = execute_batch(connection, plan)
+                batch_ms = int((time.monotonic() - batch_start) * 1000)
+                for r in batch_results:
+                    r.run_id = run_id
+                    r.suite = suite.name
+                    r.source = suite.source.type
+                    r.table = suite.source.table
+                    r.duration_ms = batch_ms
+                results.extend(batch_results)
+            except Exception as e:
+                results.append(CheckResult(
+                    check_name="batch_query",
+                    check_type="batch",
                     status=Status.ERROR,
                     severity=Severity.CRITICAL,
                     source=suite.source.type,
                     table=suite.source.table,
-                    column=check_config.column,
-                    observed_value=f"Unknown check type: {check_config.check_type}",
+                    observed_value=f"Batch query failed: {e}",
                     run_id=run_id,
                     suite=suite.name,
-                )
-            )
+                ))
+
+        # Execute non-batchable checks individually
+        remaining = plan.non_batchable
+    else:
+        remaining = suite.checks
+
+    for check_config in remaining:
+        check_start = time.monotonic()
+
+        runner = get_check_runner(check_config.check_type)
+        if runner is None:
+            results.append(CheckResult(
+                check_name=f"{check_config.check_type}:{check_config.column or ''}",
+                check_type=check_config.check_type,
+                status=Status.ERROR,
+                severity=Severity.CRITICAL,
+                source=suite.source.type,
+                table=suite.source.table,
+                column=check_config.column,
+                observed_value=f"Unknown check type: {check_config.check_type}",
+                run_id=run_id,
+                suite=suite.name,
+            ))
             continue
 
         try:
@@ -72,30 +113,29 @@ def run_suite(suite: SuiteConfig, connector: Connector) -> SuiteResult:
             result.duration_ms = int((time.monotonic() - check_start) * 1000)
             results.append(result)
         except Exception as e:
-            results.append(
-                CheckResult(
-                    check_name=f"{check_config.check_type}:{check_config.column or ''}",
-                    check_type=check_config.check_type,
-                    status=Status.ERROR,
-                    severity=Severity.CRITICAL,
-                    source=suite.source.type,
-                    table=suite.source.table,
-                    column=check_config.column,
-                    observed_value=str(e),
-                    duration_ms=int((time.monotonic() - check_start) * 1000),
-                    run_id=run_id,
-                    suite=suite.name,
-                )
-            )
+            results.append(CheckResult(
+                check_name=f"{check_config.check_type}:{check_config.column or ''}",
+                check_type=check_config.check_type,
+                status=Status.ERROR,
+                severity=Severity.CRITICAL,
+                source=suite.source.type,
+                table=suite.source.table,
+                column=check_config.column,
+                observed_value=str(e),
+                duration_ms=int((time.monotonic() - check_start) * 1000),
+                run_id=run_id,
+                suite=suite.name,
+            ))
 
     connector.disconnect(connection)
 
+    total_ms = int((time.monotonic() - suite_start) * 1000)
     suite_result = SuiteResult(
         suite_name=suite.name,
         status=Status.PASS,
         checks=results,
-        started_at=suite_start,
-        duration_ms=int((time.monotonic() - suite_start.timestamp() + time.time() - time.monotonic()) * 1000),
+        started_at=started_at,
+        duration_ms=total_ms,
     )
     suite_result.compute_status()
 

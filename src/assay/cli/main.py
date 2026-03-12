@@ -82,6 +82,8 @@ def run(
     config: Path = typer.Option(Path("assay.yaml"), "--config", "-c", help="Config file path"),
     suite: str | None = typer.Option(None, "--suite", "-s", help="Run specific suite"),
     output_format: str = typer.Option("table", "--format", "-f", help="Output format: table, json"),
+    no_store: bool = typer.Option(False, "--no-store", help="Don't persist results"),
+    no_optimize: bool = typer.Option(False, "--no-optimize", help="Disable SQL batching"),
 ) -> None:
     """Run quality checks."""
     if not config.exists():
@@ -89,23 +91,117 @@ def run(
         console.print("Run 'assay init' to create one.")
         raise typer.Exit(1)
 
+    from assay.connectors.factory import create_connector
     from assay.core.compiler import compile_file
     from assay.core.engine import run_suite
-    from assay.connectors.factory import create_connector
 
     assay_config = compile_file(config)
+
+    store = None
+    if not no_store:
+        from assay.store.sqlite import SQLiteStore
+        store = SQLiteStore()
+
+    exit_code = 0
 
     for suite_config in assay_config.suites:
         if suite and suite_config.name != suite:
             continue
 
         connector = create_connector(suite_config.source)
-        result = run_suite(suite_config, connector)
+        result = run_suite(suite_config, connector, optimize=not no_optimize)
+
+        if store:
+            store.save_result(result)
 
         if output_format == "json":
             console.print(result.model_dump_json(indent=2))
         else:
             _print_table(result)
+
+        if result.failed > 0 or result.errored > 0:
+            exit_code = 1
+
+    if store:
+        store.close()
+
+    if exit_code:
+        raise typer.Exit(exit_code)
+
+
+@app.command()
+def history(
+    suite_name: str | None = typer.Option(None, "--suite", "-s", help="Filter by suite"),
+    limit: int = typer.Option(20, "--limit", "-n", help="Number of runs to show"),
+    run_id: str | None = typer.Option(None, "--run", "-r", help="Show details for a specific run"),
+) -> None:
+    """Show historical check results."""
+    from assay.store.sqlite import SQLiteStore
+
+    store = SQLiteStore()
+
+    if run_id:
+        details = store.get_run_details(run_id)
+        if not details:
+            console.print(f"[red]Run not found: {run_id}[/red]")
+            raise typer.Exit(1)
+
+        table = Table(title=f"Run: {run_id[:8]}...")
+        table.add_column("Check", style="cyan")
+        table.add_column("Column", style="dim")
+        table.add_column("Status")
+        table.add_column("Observed")
+        table.add_column("Expected")
+
+        for row in details:
+            status_str = {
+                "pass": "[green]PASS[/green]",
+                "fail": "[red]FAIL[/red]",
+                "warn": "[yellow]WARN[/yellow]",
+                "error": "[red]ERROR[/red]",
+            }.get(row["status"], row["status"])
+
+            table.add_row(
+                row["check_type"],
+                row["source_column"] or "-",
+                status_str,
+                row["observed_value"] or "",
+                row["expected_value"] or "",
+            )
+
+        console.print(table)
+    else:
+        runs = store.get_history(suite_name=suite_name, limit=limit)
+        if not runs:
+            console.print("[dim]No history yet. Run 'assay run' first.[/dim]")
+            return
+
+        table = Table(title="Run History")
+        table.add_column("Run ID", style="dim")
+        table.add_column("Suite", style="cyan")
+        table.add_column("Status")
+        table.add_column("Score", justify="right")
+        table.add_column("Checks", justify="right")
+        table.add_column("Failed", justify="right")
+        table.add_column("Duration", justify="right")
+        table.add_column("Time")
+
+        for row in runs:
+            status_str = "[green]PASS[/green]" if row["status"] == "pass" else "[red]FAIL[/red]"
+            table.add_row(
+                row["id"][:8] + "...",
+                row["suite_name"],
+                status_str,
+                f"{row['quality_score']:.0f}/100",
+                str(row["total"]),
+                str(row["failed"]),
+                f"{row['duration_ms']}ms",
+                row["started_at"][:19],
+            )
+
+        console.print(table)
+
+    store.close()
 
 
 def _print_table(result: "SuiteResult") -> None:

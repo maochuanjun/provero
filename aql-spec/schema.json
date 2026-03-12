@@ -1,0 +1,310 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/andreahlert/assay/raw/main/aql-spec/schema.json",
+  "title": "Assay Quality Language (AQL)",
+  "description": "Schema for assay.yaml configuration files",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "AQL version",
+      "default": "1.0"
+    },
+    "source": {
+      "$ref": "#/$defs/source",
+      "description": "Data source (simple format)"
+    },
+    "sources": {
+      "type": "object",
+      "description": "Named data sources (full format)",
+      "additionalProperties": {
+        "$ref": "#/$defs/source"
+      }
+    },
+    "checks": {
+      "type": "array",
+      "description": "Quality checks (simple format)",
+      "items": {
+        "$ref": "#/$defs/check"
+      }
+    },
+    "suites": {
+      "type": "array",
+      "description": "Check suites (full format)",
+      "items": {
+        "$ref": "#/$defs/suite"
+      }
+    },
+    "contracts": {
+      "type": "array",
+      "description": "Data contracts",
+      "items": {
+        "$ref": "#/$defs/contract"
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "schedule": {
+      "type": "string",
+      "description": "Cron schedule (standalone mode)"
+    }
+  },
+  "oneOf": [
+    {
+      "required": ["source", "checks"],
+      "description": "Simple format: single source with checks"
+    },
+    {
+      "required": ["suites"],
+      "description": "Full format: multiple suites"
+    }
+  ],
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["duckdb", "postgres", "postgresql", "mysql", "sqlite", "snowflake", "bigquery", "redshift", "databricks"],
+          "description": "Data source type"
+        },
+        "connection": {
+          "type": "string",
+          "description": "Connection string or ${ENV_VAR} reference"
+        },
+        "table": {
+          "type": "string",
+          "description": "Table name or expression (e.g., read_csv('file.csv'))"
+        },
+        "conn_id": {
+          "type": "string",
+          "description": "Airflow connection ID"
+        }
+      }
+    },
+    "check": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "not_null": {
+              "oneOf": [
+                { "type": "string" },
+                { "type": "array", "items": { "type": "string" } }
+              ]
+            }
+          },
+          "required": ["not_null"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "completeness": {
+              "type": "object",
+              "required": ["column"],
+              "properties": {
+                "column": { "type": "string" },
+                "min": { "type": "number", "minimum": 0, "maximum": 1 }
+              }
+            }
+          },
+          "required": ["completeness"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "unique": {
+              "type": "string"
+            }
+          },
+          "required": ["unique"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "unique_combination": {
+              "type": "array",
+              "items": { "type": "string" },
+              "minItems": 2
+            }
+          },
+          "required": ["unique_combination"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "accepted_values": {
+              "type": "object",
+              "required": ["column", "values"],
+              "properties": {
+                "column": { "type": "string" },
+                "values": {
+                  "type": "array",
+                  "items": { "type": ["string", "number", "boolean"] }
+                }
+              }
+            }
+          },
+          "required": ["accepted_values"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "range": {
+              "type": "object",
+              "required": ["column"],
+              "properties": {
+                "column": { "type": "string" },
+                "min": { "type": "number" },
+                "max": { "type": "number" }
+              }
+            }
+          },
+          "required": ["range"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "regex": {
+              "type": "object",
+              "required": ["column", "pattern"],
+              "properties": {
+                "column": { "type": "string" },
+                "pattern": { "type": "string" }
+              }
+            }
+          },
+          "required": ["regex"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "freshness": {
+              "type": "object",
+              "required": ["column", "max_age"],
+              "properties": {
+                "column": { "type": "string" },
+                "max_age": {
+                  "type": "string",
+                  "pattern": "^\\d+[smhd]$",
+                  "description": "Duration string: 30m, 24h, 7d"
+                }
+              }
+            }
+          },
+          "required": ["freshness"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "row_count": {
+              "type": "object",
+              "properties": {
+                "min": { "type": "integer", "minimum": 0 },
+                "max": { "type": "integer", "minimum": 0 }
+              }
+            }
+          },
+          "required": ["row_count"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "custom_sql": {
+              "oneOf": [
+                { "type": "string", "description": "SQL query returning boolean" },
+                {
+                  "type": "object",
+                  "required": ["query"],
+                  "properties": {
+                    "name": { "type": "string" },
+                    "query": { "type": "string" }
+                  }
+                }
+              ]
+            }
+          },
+          "required": ["custom_sql"]
+        }
+      ]
+    },
+    "suite": {
+      "type": "object",
+      "required": ["name", "checks"],
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "source": {
+          "oneOf": [
+            { "type": "string", "description": "Reference to a named source" },
+            { "$ref": "#/$defs/source" }
+          ]
+        },
+        "table": { "type": "string" },
+        "schedule": { "type": "string" },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "checks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/check" }
+        },
+        "on_failure": {
+          "type": "array",
+          "description": "Actions to take when checks fail"
+        }
+      }
+    },
+    "contract": {
+      "type": "object",
+      "required": ["name", "source"],
+      "properties": {
+        "name": { "type": "string" },
+        "owner": { "type": "string" },
+        "version": { "type": "string" },
+        "source": {
+          "oneOf": [
+            { "type": "string" },
+            { "$ref": "#/$defs/source" }
+          ]
+        },
+        "table": { "type": "string" },
+        "sla": {
+          "type": "object",
+          "properties": {
+            "freshness": { "type": "string" },
+            "completeness": { "type": "string" },
+            "availability": { "type": "string" }
+          }
+        },
+        "schema": {
+          "type": "object",
+          "properties": {
+            "columns": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["name", "type"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "type": { "type": "string" },
+                  "checks": {
+                    "type": "array"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "on_violation": {
+          "type": "string",
+          "enum": ["block", "warn", "quarantine"]
+        }
+      }
+    }
+  }
+}
