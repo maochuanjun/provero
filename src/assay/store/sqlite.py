@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from assay.core.results import CheckResult, Status, SuiteResult
@@ -147,7 +147,7 @@ class SQLiteStore:
 
     def _store_metrics(self, suite_name: str, check: CheckResult) -> None:
         """Extract and store numeric metrics from a check result."""
-        now = datetime.now().isoformat()
+        now = datetime.now(tz=timezone.utc).isoformat()
 
         if check.check_type == "row_count":
             try:

@@ -419,3 +419,52 @@ class TestConfigurableSeverity:
             ),
         )
         assert result.severity == Severity.BLOCKER
+
+
+class TestCompleteness:
+    def test_pass_fully_complete(self, duckdb_connection):
+        runner = get_check_runner("completeness")
+        result = runner(
+            connection=duckdb_connection,
+            table="orders",
+            check_config=CheckConfig(
+                check_type="completeness",
+                column="order_id",
+                params={"min": 0.95},
+            ),
+        )
+        assert result.status == Status.PASS
+        assert result.observed_value == "100.0%"
+
+    def test_fail_below_threshold(self, duckdb_connection):
+        duckdb_connection._conn.execute(
+            "INSERT INTO orders VALUES (6, NULL, 10.00, 'pending')"
+        )
+        runner = get_check_runner("completeness")
+        result = runner(
+            connection=duckdb_connection,
+            table="orders",
+            check_config=CheckConfig(
+                check_type="completeness",
+                column="customer_id",
+                params={"min": 1.0},
+            ),
+        )
+        assert result.status == Status.FAIL
+        assert result.failing_rows == 1
+
+    def test_pass_with_low_threshold(self, duckdb_connection):
+        duckdb_connection._conn.execute(
+            "INSERT INTO orders VALUES (6, NULL, 10.00, 'pending')"
+        )
+        runner = get_check_runner("completeness")
+        result = runner(
+            connection=duckdb_connection,
+            table="orders",
+            check_config=CheckConfig(
+                check_type="completeness",
+                column="customer_id",
+                params={"min": 0.80},
+            ),
+        )
+        assert result.status == Status.PASS

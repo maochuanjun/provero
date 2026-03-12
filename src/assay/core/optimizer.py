@@ -82,7 +82,7 @@ def plan_batch(table: str, checks: list[CheckConfig]) -> BatchPlan:
                 plan.add_metric(
                     alias=f"nn_{col}_null",
                     expression=f"COUNT(*) FILTER (WHERE {col} IS NULL)",
-                    check_config=CheckConfig(check_type="not_null", column=col),
+                    check_config=CheckConfig(check_type="not_null", column=col, severity=check.severity),
                 )
 
         elif check.check_type == "completeness":
@@ -210,11 +210,12 @@ def execute_batch(
 
             if check.check_type == "not_null":
                 null_count = data.get(f"nn_{col}_null", 0)
+                severity = Severity(check.severity) if check.severity else Severity.CRITICAL
                 results.append(CheckResult(
                     check_name=f"not_null:{col}",
                     check_type="not_null",
                     status=Status.PASS if null_count == 0 else Status.FAIL,
-                    severity=Severity.CRITICAL,
+                    severity=severity,
                     column=col,
                     observed_value=f"{null_count} nulls",
                     expected_value="0 nulls",
@@ -228,11 +229,12 @@ def execute_batch(
                 non_null = data.get(f"comp_{col}_nonnull", 0)
                 min_comp = check.params.get("min", 0.95)
                 completeness = non_null / total if total > 0 else 0.0
+                severity = Severity(check.severity) if check.severity else Severity.CRITICAL
                 results.append(CheckResult(
                     check_name=f"completeness:{col}",
                     check_type="completeness",
                     status=Status.PASS if completeness >= min_comp else Status.FAIL,
-                    severity=Severity.CRITICAL,
+                    severity=severity,
                     column=col,
                     observed_value=f"{completeness:.1%}",
                     expected_value=f">= {min_comp:.1%}",
@@ -244,11 +246,12 @@ def execute_batch(
             elif check.check_type == "unique":
                 distinct = data.get(f"uniq_{col}_distinct", 0)
                 duplicates = total - distinct
+                severity = Severity(check.severity) if check.severity else Severity.CRITICAL
                 results.append(CheckResult(
                     check_name=f"unique:{col}",
                     check_type="unique",
                     status=Status.PASS if duplicates == 0 else Status.FAIL,
-                    severity=Severity.CRITICAL,
+                    severity=severity,
                     column=col,
                     observed_value=f"{duplicates} duplicates",
                     expected_value="0 duplicates",
@@ -270,11 +273,12 @@ def execute_batch(
                     expected_parts.append(f"min={check.params['min']}")
                 if check.params.get("max") is not None:
                     expected_parts.append(f"max={check.params['max']}")
+                severity = Severity(check.severity) if check.severity else Severity.CRITICAL
                 results.append(CheckResult(
                     check_name=f"range:{col}",
                     check_type="range",
                     status=Status.PASS if out_of_range == 0 else Status.FAIL,
-                    severity=Severity.CRITICAL,
+                    severity=severity,
                     column=col,
                     observed_value=f"min={min_val}, max={max_val}",
                     expected_value=", ".join(expected_parts),
@@ -295,11 +299,12 @@ def execute_batch(
                     expected_parts.append(f">= {min_count:,}")
                 if max_count is not None:
                     expected_parts.append(f"<= {max_count:,}")
+                severity = Severity(check.severity) if check.severity else Severity.CRITICAL
                 results.append(CheckResult(
                     check_name="row_count",
                     check_type="row_count",
                     status=Status.PASS if passed else Status.FAIL,
-                    severity=Severity.CRITICAL,
+                    severity=severity,
                     observed_value=f"{count:,}",
                     expected_value=" and ".join(expected_parts) if expected_parts else "> 0",
                     row_count=count,
@@ -309,11 +314,12 @@ def execute_batch(
             elif check.check_type == "accepted_values":
                 invalid = data.get(f"av_{col}_invalid", 0)
                 values = check.params.get("values", [])
+                severity = Severity(check.severity) if check.severity else Severity.CRITICAL
                 results.append(CheckResult(
                     check_name=f"accepted_values:{col}",
                     check_type="accepted_values",
                     status=Status.PASS if invalid == 0 else Status.FAIL,
-                    severity=Severity.CRITICAL,
+                    severity=severity,
                     column=col,
                     observed_value=f"{invalid} invalid values",
                     expected_value=f"only {values}",

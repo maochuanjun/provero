@@ -308,12 +308,37 @@ def profile(
 @app.command()
 def validate(
     config: Path = typer.Option(Path("assay.yaml"), "--config", "-c", help="Config file path"),
+    schema_only: bool = typer.Option(False, "--schema-only", help="Only validate against JSON Schema"),
 ) -> None:
     """Validate assay.yaml syntax without running checks."""
     if not config.exists():
         console.print(f"[red]Config file not found: {config}[/red]")
         raise typer.Exit(1)
 
+    import json
+
+    import yaml
+    from jsonschema import ValidationError, validate as json_validate
+
+    # Step 1: Validate against JSON Schema
+    schema_path = Path(__file__).parent.parent.parent.parent / "aql-spec" / "schema.json"
+    if schema_path.exists():
+        with config.open() as f:
+            raw = yaml.safe_load(f)
+        with schema_path.open() as f:
+            schema = json.load(f)
+        try:
+            json_validate(instance=raw, schema=schema)
+            console.print("[green]Schema validation passed.[/green]")
+        except ValidationError as e:
+            path = " -> ".join(str(p) for p in e.absolute_path) if e.absolute_path else "root"
+            console.print(f"[red]Schema validation failed at '{path}':[/red] {e.message}")
+            raise typer.Exit(1)
+
+    if schema_only:
+        return
+
+    # Step 2: Compile to verify semantic correctness
     from assay.core.compiler import compile_file
 
     try:
