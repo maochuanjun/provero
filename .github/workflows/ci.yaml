@@ -85,7 +85,7 @@ jobs:
           import zipfile, sys
           with zipfile.ZipFile('$whl') as z:
               names = z.namelist()
-              required = ['assay/schema.json', 'assay/reporting/templates/report.html']
+              required = ['provero/schema.json', 'provero/reporting/templates/report.html']
               for r in required:
                   matches = [n for n in names if n.endswith(r)]
                   if not matches:
