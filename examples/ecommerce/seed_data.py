@@ -96,7 +96,7 @@ def seed() -> None:
 
     conn.close()
     print("Seeded ecommerce.duckdb with sample data.")
-    print("Run: assay run -c assay.yaml")
+    print("Run: provero run -c provero.yaml")
 
 
 if __name__ == "__main__":

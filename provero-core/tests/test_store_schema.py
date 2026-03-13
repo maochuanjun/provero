@@ -42,15 +42,15 @@ class TestStoreSchema:
             "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
         ).fetchall()
         table_names = [t[0] for t in tables]
-        assert "assay_run" in table_names
-        assert "assay_check_result" in table_names
-        assert "assay_metric" in table_names
+        assert "provero_run" in table_names
+        assert "provero_check_result" in table_names
+        assert "provero_metric" in table_names
         conn.close()
 
     def test_run_has_trigger_and_completed_at(self, store):
         s, db_path = store
         conn = sqlite3.connect(str(db_path))
-        info = conn.execute("PRAGMA table_info(assay_run)").fetchall()
+        info = conn.execute("PRAGMA table_info(provero_run)").fetchall()
         col_names = [row[1] for row in info]
         assert "trigger" in col_names
         assert "completed_at" in col_names
@@ -59,7 +59,7 @@ class TestStoreSchema:
     def test_check_result_has_failing_sample(self, store):
         s, db_path = store
         conn = sqlite3.connect(str(db_path))
-        info = conn.execute("PRAGMA table_info(assay_check_result)").fetchall()
+        info = conn.execute("PRAGMA table_info(provero_check_result)").fetchall()
         col_names = [row[1] for row in info]
         assert "failing_sample" in col_names
         conn.close()

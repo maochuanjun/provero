@@ -1,5 +1,5 @@
-# Assay - Quickstart Example
-# Run with: assay run -c examples/quickstart/assay.yaml
+# Provero - Quickstart Example
+# Run with: provero run -c examples/quickstart/provero.yaml
 
 source:
   type: duckdb

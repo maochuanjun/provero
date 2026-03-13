@@ -1,4 +1,4 @@
-# Assay Quality Language (AQL) Specification
+# Provero Quality Language (AQL) Specification
 
 **Version:** 1.0-draft
 **Status:** Draft
@@ -6,11 +6,11 @@
 
 ## Overview
 
-AQL (Assay Quality Language) is a declarative YAML-based language for defining
+AQL (Provero Quality Language) is a declarative YAML-based language for defining
 data quality rules. It is designed to be vendor-neutral, human-readable,
 and machine-parseable.
 
-AQL files (typically named `assay.yaml`) describe what quality checks to run
+AQL files (typically named `provero.yaml`) describe what quality checks to run
 against which data sources. The language separates *what* to check from *how*
 to execute, allowing the same rules to run across different engines and
 connectors.

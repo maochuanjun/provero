@@ -55,17 +55,17 @@ class TestCreateConnector:
             create_connector(source)
 
     def test_env_var_resolution(self):
-        os.environ["TEST_ASSAY_DB"] = "postgresql://localhost/test"
+        os.environ["TEST_PROVERO_DB"] = "postgresql://localhost/test"
         try:
-            source = SourceConfig(type="postgres", connection="${TEST_ASSAY_DB}")
+            source = SourceConfig(type="postgres", connection="${TEST_PROVERO_DB}")
             from provero.connectors.postgres import PostgresConnector
             connector = create_connector(source)
             assert isinstance(connector, PostgresConnector)
         finally:
-            del os.environ["TEST_ASSAY_DB"]
+            del os.environ["TEST_PROVERO_DB"]
 
     def test_missing_env_var_raises(self):
-        source = SourceConfig(type="postgres", connection="${NONEXISTENT_VAR_ASSAY}")
+        source = SourceConfig(type="postgres", connection="${NONEXISTENT_VAR_PROVERO}")
         with pytest.raises(ValueError, match="not set"):
             create_connector(source)
 

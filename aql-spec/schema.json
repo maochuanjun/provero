@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/provero-org/provero/raw/main/aql-spec/schema.json",
-  "title": "Assay Quality Language (AQL)",
+  "title": "Provero Quality Language (AQL)",
   "description": "Schema for provero.yaml configuration files",
   "type": "object",
   "properties": {

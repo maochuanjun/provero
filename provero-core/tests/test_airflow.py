@@ -22,8 +22,8 @@ from __future__ import annotations
 import pytest
 
 try:
-    from provero.airflow.operators import AssayCheckOperator
-    from provero.airflow.decorators import assay_check
+    from provero.airflow.operators import ProveroCheckOperator
+    from provero.airflow.decorators import provero_check
     HAS_AIRFLOW_PACKAGE = True
 except ImportError:
     HAS_AIRFLOW_PACKAGE = False
@@ -34,9 +34,9 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-class TestAssayCheckOperator:
+class TestProveroCheckOperator:
     def test_instantiation(self):
-        op = AssayCheckOperator(
+        op = ProveroCheckOperator(
             task_id="test_check",
             config_path="provero.yaml",
             suite="orders",
@@ -47,16 +47,16 @@ class TestAssayCheckOperator:
         assert op.optimize is True
 
     def test_template_fields(self):
-        assert "config_path" in AssayCheckOperator.template_fields
-        assert "suite" in AssayCheckOperator.template_fields
+        assert "config_path" in ProveroCheckOperator.template_fields
+        assert "suite" in ProveroCheckOperator.template_fields
 
 
-class TestAssayCheckDecorator:
+class TestProveroCheckDecorator:
     def test_import(self):
-        assert callable(assay_check)
+        assert callable(provero_check)
 
     def test_decorator_wraps_function(self):
-        @assay_check(config_path="nonexistent.yaml")
+        @provero_check(config_path="nonexistent.yaml")
         def my_task():
             return 42
 

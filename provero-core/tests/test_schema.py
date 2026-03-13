@@ -29,7 +29,7 @@ from jsonschema import ValidationError, validate
 
 @pytest.fixture
 def schema():
-    # Try workspace root first, then assay-core local
+    # Try workspace root first, then provero-core local
     schema_path = Path(__file__).parent.parent.parent / "aql-spec" / "schema.json"
     if not schema_path.exists():
         schema_path = Path(__file__).parent.parent / "aql-spec" / "schema.json"

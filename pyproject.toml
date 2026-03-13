@@ -20,8 +20,8 @@ dev = [
 
 [tool.uv.workspace]
 members = [
-    "assay-core",
-    "assay-airflow",
+    "provero-core",
+    "provero-airflow",
 ]
 
 [tool.uv.sources]
@@ -30,7 +30,7 @@ provero = { workspace = true }
 [tool.ruff]
 target-version = "py311"
 line-length = 100
-src = ["assay-core/src", "assay-airflow/src"]
+src = ["provero-core/src", "provero-airflow/src"]
 
 [tool.ruff.lint]
 select = [
@@ -44,5 +44,5 @@ select = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["assay-core/tests"]
-pythonpath = ["assay-core/src"]
+testpaths = ["provero-core/tests"]
+pythonpath = ["provero-core/src"]

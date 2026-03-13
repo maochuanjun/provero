@@ -13,8 +13,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v4
       - run: uv sync --dev
-      - run: uv run ruff check assay-core/src/ assay-core/tests/
-      - run: uv run ruff format --check assay-core/src/ assay-core/tests/
+      - run: uv run ruff check provero-core/src/ provero-core/tests/
+      - run: uv run ruff format --check provero-core/src/ provero-core/tests/
 
   test:
     runs-on: ubuntu-latest
@@ -27,7 +27,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: uv sync --dev
-      - run: uv run pytest assay-core/tests/ -v --cov=assay-core/src/provero --cov-report=term-missing
+      - run: uv run pytest provero-core/tests/ -v --cov=provero-core/src/provero --cov-report=term-missing
 
   typecheck:
     runs-on: ubuntu-latest
@@ -35,7 +35,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v4
       - run: uv sync --dev
-      - run: uv run mypy assay-core/src/provero/
+      - run: uv run mypy provero-core/src/provero/
 
   license-check:
     runs-on: ubuntu-latest
@@ -48,7 +48,7 @@ jobs:
             if ! head -5 "$f" | grep -q "Licensed to the Apache Software Foundation"; then
               missing+=("$f")
             fi
-          done < <(find assay-core/src/provero -name "*.py" -type f)
+          done < <(find provero-core/src/provero -name "*.py" -type f)
           if [ ${#missing[@]} -ne 0 ]; then
             echo "Files missing Apache license header:"
             printf '  %s\n' "${missing[@]}"
@@ -64,7 +64,7 @@ jobs:
       - run: uv sync --dev
       - name: Build and verify wheel contents
         run: |
-          cd assay-core && uv build
+          cd provero-core && uv build
           whl=$(ls dist/*.whl | head -1)
           python -c "
           import zipfile, sys

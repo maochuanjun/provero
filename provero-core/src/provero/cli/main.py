@@ -129,7 +129,7 @@ def run(
     from provero.core.compiler import compile_file
     from provero.core.engine import run_suite
 
-    assay_config = compile_file(config)
+    provero_config = compile_file(config)
 
     store = None
     if not no_store:
@@ -140,7 +140,7 @@ def run(
     all_results = []
     contract_results = []
 
-    for suite_config in assay_config.suites:
+    for suite_config in provero_config.suites:
         if suite and suite_config.name != suite:
             continue
         if tag and tag not in suite_config.tags:
@@ -163,13 +163,13 @@ def run(
             exit_code = 1
 
     # Run contracts if present
-    if assay_config.contracts:
+    if provero_config.contracts:
         from provero.core.engine import run_contract
 
-        for contract in assay_config.contracts:
-            source = _resolve_contract_source(contract, assay_config)
+        for contract in provero_config.contracts:
+            source = _resolve_contract_source(contract, provero_config)
             connector = create_connector(source)
-            cr = run_contract(contract, connector, assay_config.sources)
+            cr = run_contract(contract, connector, provero_config.sources)
             contract_results.append(cr)
 
             if cr.status == "fail":
@@ -184,12 +184,12 @@ def run(
                 console.print(f"  [{v.severity}] {v.rule}: {v.message}")
 
     # Send alerts if configured
-    if not no_alerts and assay_config.alerts:
+    if not no_alerts and provero_config.alerts:
         from provero.alerts.sender import send_alerts
 
         for result in all_results:
-            outcomes = send_alerts(assay_config.alerts, result)
-            for alert_cfg, ok in zip(assay_config.alerts, outcomes, strict=True):
+            outcomes = send_alerts(provero_config.alerts, result)
+            for alert_cfg, ok in zip(provero_config.alerts, outcomes, strict=True):
                 if ok:
                     console.print(f"[green]Alert sent to {alert_cfg.url}[/green]")
                 elif ok is False and result.failed > 0:
@@ -238,17 +238,17 @@ def contract_validate(
     from provero.core.compiler import SourceConfig, compile_file
     from provero.core.engine import run_contract
 
-    assay_config = compile_file(config)
+    provero_config = compile_file(config)
 
-    if not assay_config.contracts:
+    if not provero_config.contracts:
         console.print("[yellow]No contracts defined in config.[/yellow]")
         return
 
     exit_code = 0
-    for contract in assay_config.contracts:
-        source = _resolve_contract_source(contract, assay_config)
+    for contract in provero_config.contracts:
+        source = _resolve_contract_source(contract, provero_config)
         connector = create_connector(source)
-        result = run_contract(contract, connector, assay_config.sources)
+        result = run_contract(contract, connector, provero_config.sources)
 
         if result.status == "fail":
             exit_code = 1
@@ -282,15 +282,15 @@ def contract_diff(
     from provero.contracts.diff import diff_contracts
     from provero.core.compiler import compile_file
 
-    old_assay = compile_file(old_config)
-    new_assay = compile_file(new_config)
+    old_provero = compile_file(old_config)
+    new_provero = compile_file(new_config)
 
-    if not old_assay.contracts or not new_assay.contracts:
+    if not old_provero.contracts or not new_provero.contracts:
         console.print("[yellow]Both files must contain contracts.[/yellow]")
         raise typer.Exit(1)
 
-    old_map = {c.name: c for c in old_assay.contracts}
-    new_map = {c.name: c for c in new_assay.contracts}
+    old_map = {c.name: c for c in old_provero.contracts}
+    new_map = {c.name: c for c in new_provero.contracts}
 
     all_names = set(old_map.keys()) | set(new_map.keys())
 
@@ -395,16 +395,16 @@ def history(
     store.close()
 
 
-def _resolve_contract_source(contract, assay_config) -> "SourceConfig":
+def _resolve_contract_source(contract, provero_config) -> "SourceConfig":
     """Resolve a contract's source reference against config sources."""
     from provero.core.compiler import SourceConfig
 
     source_ref = contract.source
-    if source_ref and source_ref in assay_config.sources:
-        source = assay_config.sources[source_ref]
+    if source_ref and source_ref in provero_config.sources:
+        source = provero_config.sources[source_ref]
         return source.model_copy(update={"table": contract.table}) if contract.table else source
 
-    source_type = source_ref or (assay_config.suites[0].source.type if assay_config.suites else "duckdb")
+    source_type = source_ref or (provero_config.suites[0].source.type if provero_config.suites else "duckdb")
     return SourceConfig(type=source_type, table=contract.table)
 
 
@@ -462,8 +462,8 @@ def profile(
     from provero.core.profiler import checks_to_yaml, profile_table, suggest_checks
 
     if config.exists():
-        assay_config = compile_file(config)
-        source = assay_config.suites[0].source if assay_config.suites else SourceConfig(type="duckdb")
+        provero_config = compile_file(config)
+        source = provero_config.suites[0].source if provero_config.suites else SourceConfig(type="duckdb")
         tbl = table_name or source.table
     else:
         source = SourceConfig(type="duckdb")
@@ -555,9 +555,9 @@ def validate(
     from provero.core.compiler import compile_file
 
     try:
-        assay_config = compile_file(config)
-        total_checks = sum(len(s.checks) for s in assay_config.suites)
-        console.print(f"[green]Valid.[/green] {len(assay_config.suites)} suite(s), {total_checks} check(s)")
+        provero_config = compile_file(config)
+        total_checks = sum(len(s.checks) for s in provero_config.suites)
+        console.print(f"[green]Valid.[/green] {len(provero_config.suites)} suite(s), {total_checks} check(s)")
     except Exception as e:
         console.print(f"[red]Invalid:[/red] {e}")
         raise typer.Exit(1)

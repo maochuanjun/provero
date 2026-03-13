@@ -44,7 +44,7 @@ Successor espiritual do Apache Griffin, aprendendo com seus erros.
            │                  │                  │              │
            ▼                  ▼                  ▼              ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                         ASSAY CORE ENGINE                               │
+│                         PROVERO CORE ENGINE                               │
 │                                                                         │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌────────────────────────┐  │
 │  │  Rule Compiler   │  │  Check Engine    │  │  Anomaly Detector     │  │

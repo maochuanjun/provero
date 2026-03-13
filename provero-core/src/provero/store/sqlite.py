@@ -41,7 +41,7 @@ class SQLiteStore:
 
     def _create_tables(self) -> None:
         self._conn.executescript("""
-            CREATE TABLE IF NOT EXISTS assay_run (
+            CREATE TABLE IF NOT EXISTS provero_run (
                 id TEXT PRIMARY KEY,
                 suite_name TEXT NOT NULL,
                 status TEXT NOT NULL,
@@ -57,9 +57,9 @@ class SQLiteStore:
                 completed_at TEXT
             );
 
-            CREATE TABLE IF NOT EXISTS assay_check_result (
+            CREATE TABLE IF NOT EXISTS provero_check_result (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                run_id TEXT NOT NULL REFERENCES assay_run(id),
+                run_id TEXT NOT NULL REFERENCES provero_run(id),
                 check_name TEXT NOT NULL,
                 check_type TEXT NOT NULL,
                 status TEXT NOT NULL,
@@ -75,7 +75,7 @@ class SQLiteStore:
                 duration_ms INTEGER
             );
 
-            CREATE TABLE IF NOT EXISTS assay_metric (
+            CREATE TABLE IF NOT EXISTS provero_metric (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 suite_name TEXT NOT NULL,
                 check_name TEXT NOT NULL,
@@ -84,13 +84,13 @@ class SQLiteStore:
                 recorded_at TEXT NOT NULL
             );
 
-            CREATE INDEX IF NOT EXISTS idx_run_suite ON assay_run(suite_name);
-            CREATE INDEX IF NOT EXISTS idx_run_started ON assay_run(started_at);
-            CREATE INDEX IF NOT EXISTS idx_check_run ON assay_check_result(run_id);
-            CREATE INDEX IF NOT EXISTS idx_check_type ON assay_check_result(check_type);
-            CREATE INDEX IF NOT EXISTS idx_check_status ON assay_check_result(status);
+            CREATE INDEX IF NOT EXISTS idx_run_suite ON provero_run(suite_name);
+            CREATE INDEX IF NOT EXISTS idx_run_started ON provero_run(started_at);
+            CREATE INDEX IF NOT EXISTS idx_check_run ON provero_check_result(run_id);
+            CREATE INDEX IF NOT EXISTS idx_check_type ON provero_check_result(check_type);
+            CREATE INDEX IF NOT EXISTS idx_check_status ON provero_check_result(status);
             CREATE INDEX IF NOT EXISTS idx_metric_lookup
-                ON assay_metric(suite_name, check_name, metric_name, recorded_at);
+                ON provero_metric(suite_name, check_name, metric_name, recorded_at);
         """)
 
     def save_result(self, result: SuiteResult) -> str:
@@ -102,7 +102,7 @@ class SQLiteStore:
 
         completed_at = datetime.now(tz=timezone.utc).isoformat()
         self._conn.execute(
-            """INSERT INTO assay_run
+            """INSERT INTO provero_run
                (id, suite_name, status, trigger, total, passed, failed, warned, errored,
                 quality_score, duration_ms, started_at, completed_at)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
@@ -125,7 +125,7 @@ class SQLiteStore:
 
         for check in result.checks:
             self._conn.execute(
-                """INSERT INTO assay_check_result
+                """INSERT INTO provero_check_result
                    (run_id, check_name, check_type, status, severity,
                     source_table, source_column, observed_value, expected_value,
                     row_count, failing_rows, failing_sample, failing_query, duration_ms)
@@ -158,7 +158,7 @@ class SQLiteStore:
         """Extract and store numeric metrics from a check result."""
         now = datetime.now(tz=timezone.utc).isoformat()
         insert_sql = (
-            "INSERT INTO assay_metric "
+            "INSERT INTO provero_metric "
             "(suite_name, check_name, metric_name, value, recorded_at) "
             "VALUES (?, ?, ?, ?, ?)"
         )
@@ -211,12 +211,12 @@ class SQLiteStore:
         """Get recent run history."""
         if suite_name:
             rows = self._conn.execute(
-                "SELECT * FROM assay_run WHERE suite_name = ? ORDER BY started_at DESC LIMIT ?",
+                "SELECT * FROM provero_run WHERE suite_name = ? ORDER BY started_at DESC LIMIT ?",
                 (suite_name, limit),
             ).fetchall()
         else:
             rows = self._conn.execute(
-                "SELECT * FROM assay_run ORDER BY started_at DESC LIMIT ?",
+                "SELECT * FROM provero_run ORDER BY started_at DESC LIMIT ?",
                 (limit,),
             ).fetchall()
         return [dict(row) for row in rows]
@@ -224,7 +224,7 @@ class SQLiteStore:
     def get_run_details(self, run_id: str) -> list[dict]:
         """Get check results for a specific run."""
         rows = self._conn.execute(
-            "SELECT * FROM assay_check_result WHERE run_id = ? ORDER BY id",
+            "SELECT * FROM provero_check_result WHERE run_id = ? ORDER BY id",
             (run_id,),
         ).fetchall()
         return [dict(row) for row in rows]
@@ -238,7 +238,7 @@ class SQLiteStore:
     ) -> list[dict]:
         """Get historical metric values for anomaly detection."""
         rows = self._conn.execute(
-            """SELECT value, recorded_at FROM assay_metric
+            """SELECT value, recorded_at FROM provero_metric
                WHERE suite_name = ? AND check_name = ? AND metric_name = ?
                ORDER BY recorded_at DESC LIMIT ?""",
             (suite_name, check_name, metric_name, limit),

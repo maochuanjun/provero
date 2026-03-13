@@ -26,9 +26,9 @@ from pathlib import Path
 
 import pytest
 
-PROJECT_ROOT = Path(__file__).parent.parent  # assay-core/
+PROJECT_ROOT = Path(__file__).parent.parent  # provero-core/
 SRC_DIR = PROJECT_ROOT / "src" / "provero"
-REPO_ROOT = PROJECT_ROOT.parent  # assay/ (the mono-repo root)
+REPO_ROOT = PROJECT_ROOT.parent  # provero/ (the mono-repo root)
 
 
 class TestLicenseHeaders:

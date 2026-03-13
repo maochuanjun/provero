@@ -36,7 +36,7 @@ except ImportError:
             raise NotImplementedError
 
 
-class AssayCheckOperator(BaseOperator):
+class ProveroCheckOperator(BaseOperator):
     """Run Provero quality checks as an Airflow task.
 
     Reads an provero.yaml configuration and executes the specified suite.
@@ -44,7 +44,7 @@ class AssayCheckOperator(BaseOperator):
 
     Example usage in an Airflow DAG::
 
-        check_orders = AssayCheckOperator(
+        check_orders = ProveroCheckOperator(
             task_id="check_orders",
             config_path="dags/provero.yaml",
             suite="orders_daily",

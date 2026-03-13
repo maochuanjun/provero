@@ -20,7 +20,7 @@
 Third-party connectors register themselves in their pyproject.toml::
 
     [project.entry-points."provero.connectors"]
-    mysql = "assay_mysql:MySQLConnector"
+    mysql = "provero_mysql:MySQLConnector"
 
 The factory discovers them automatically at runtime.
 """

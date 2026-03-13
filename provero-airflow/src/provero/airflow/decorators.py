@@ -23,7 +23,7 @@ import functools
 from typing import Any, Callable
 
 
-def assay_check(
+def provero_check(
     config_path: str = "provero.yaml",
     suite: str | None = None,
     fail_on_error: bool = True,
@@ -32,7 +32,7 @@ def assay_check(
 
     Example::
 
-        @assay_check(config_path="dags/provero.yaml", suite="orders_daily")
+        @provero_check(config_path="dags/provero.yaml", suite="orders_daily")
         def process_orders(**context):
             ...
     """

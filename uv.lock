@@ -306,7 +306,7 @@ dev = [
 requires-dist = [
     { name = "hypothesis", marker = "extra == 'dev'", specifier = ">=6.100" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.10" },
-    { name = "provero", editable = "assay-core" },
+    { name = "provero", editable = "provero-core" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0" },
@@ -2791,7 +2791,7 @@ wheels = [
 [[package]]
 name = "provero"
 version = "0.0.1"
-source = { editable = "assay-core" }
+source = { editable = "provero-core" }
 dependencies = [
     { name = "duckdb" },
     { name = "jinja2" },
@@ -2870,7 +2870,7 @@ requires-dist = [
     { name = "polars", marker = "extra == 'polars'", specifier = ">=0.20" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.7" },
     { name = "prophet", marker = "extra == 'prophet'", specifier = ">=1.1" },
-    { name = "provero", extras = ["dataframe", "postgres", "snowflake", "bigquery", "anomaly", "server"], marker = "extra == 'all'", editable = "assay-core" },
+    { name = "provero", extras = ["dataframe", "postgres", "snowflake", "bigquery", "anomaly", "server"], marker = "extra == 'all'", editable = "provero-core" },
     { name = "psycopg", extras = ["binary"], marker = "extra == 'postgres'", specifier = ">=3.1" },
     { name = "pydantic", specifier = ">=2.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
@@ -2892,7 +2892,7 @@ provides-extras = ["dataframe", "polars", "postgres", "snowflake", "bigquery", "
 [[package]]
 name = "provero-airflow"
 version = "0.1.0.dev0"
-source = { editable = "assay-airflow" }
+source = { editable = "provero-airflow" }
 dependencies = [
     { name = "apache-airflow" },
     { name = "provero" },
@@ -2906,7 +2906,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "apache-airflow", specifier = ">=2.9" },
-    { name = "provero", editable = "assay-core" },
+    { name = "provero", editable = "provero-core" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
 ]
 provides-extras = ["dev"]

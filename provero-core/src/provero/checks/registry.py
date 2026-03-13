@@ -21,7 +21,7 @@ Built-in checks register via the ``@register_check`` decorator.
 Third-party checks register in their pyproject.toml::
 
     [project.entry-points."provero.checks"]
-    pii_detection = "assay_pii:check_pii"
+    pii_detection = "provero_pii:check_pii"
 
 The registry discovers them automatically at runtime.
 """
