@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v4
-      - run: uv sync --dev
+      - run: uv sync --all-extras --dev
       - run: uv run ruff check provero-core/src/ provero-core/tests/
       - run: uv run ruff format --check provero-core/src/ provero-core/tests/
 
@@ -26,7 +26,7 @@ jobs:
       - uses: astral-sh/setup-uv@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - run: uv sync --dev
+      - run: uv sync --all-extras --dev
       - run: uv run pytest provero-core/tests/ -v --cov=provero-core/src/provero --cov-report=term-missing
 
   typecheck:
@@ -34,7 +34,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v4
-      - run: uv sync --dev
+      - run: uv sync --all-extras --dev
       - run: uv run mypy provero-core/src/provero/
 
   license-check:
@@ -61,12 +61,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v4
-      - run: uv sync --dev
+      - run: uv sync --all-extras --dev
       - name: Build and verify wheel contents
         run: |
-          cd provero-core && uv build
+          uv build --package provero
           whl=$(ls dist/*.whl | head -1)
-          python -c "
+          uv run python -c "
           import zipfile, sys
           with zipfile.ZipFile('$whl') as z:
               names = z.namelist()
