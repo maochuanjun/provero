@@ -9,6 +9,12 @@
 
 A vendor-neutral, declarative data quality engine.
 
+<!-- Demo GIF will be generated from docs/demo.tape using charmbracelet/vhs -->
+<!-- To generate: vhs docs/demo.tape -o docs/assets/demo.gif -->
+<p align="center">
+  <img src="docs/assets/demo.gif" alt="Provero demo" width="700">
+</p>
+
 ## Quick Start
 
 ```bash

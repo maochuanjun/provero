@@ -115,6 +115,20 @@ CI will reject PRs without a news fragment (docs-only and CI-only changes are ex
 
 Look for issues labeled [`good first issue`](https://github.com/provero-org/provero/issues?q=label%3A%22good+first+issue%22) for a guided entry point. These include pointers to the relevant files and expected behavior.
 
+## Regenerating the Demo GIF
+
+The README includes an animated terminal demo generated with [charmbracelet/vhs](https://github.com/charmbracelet/vhs). To regenerate it:
+
+```bash
+# Install vhs
+go install github.com/charmbracelet/vhs@latest
+
+# Generate the GIF (requires provero to be installed)
+vhs docs/demo.tape -o docs/assets/demo.gif
+```
+
+Edit `docs/demo.tape` to change the recording script. The tape file is self-documented with comments.
+
 ## Contributor License Agreement
 
 By contributing to Provero, you agree that your contributions will be licensed under the Apache License 2.0. When the project enters Apache Incubation, contributors will be asked to sign the Apache Individual Contributor License Agreement (ICLA).
