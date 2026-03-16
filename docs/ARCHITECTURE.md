@@ -1182,9 +1182,9 @@ apache-provero/
 
 ---
 
-## MVP Scope (Phase 1 - Incubation Proposal)
+## MVP Scope (Phase 1)
 
-What ships for the proposal demo:
+What ships for v1.0:
 
 ```
 Must have (MVP):
@@ -1199,7 +1199,7 @@ Must have (MVP):
   ✓ Airflow provider: ProveroCheckOperator (basic)
   ✓ One complete example: e-commerce pipeline
 
-Phase 2 (post-acceptance):
+Phase 2:
   - Anomaly detection (Z-Score, MAD)
   - HTML reports
   - Data contracts
@@ -1235,7 +1235,7 @@ Lessons from Griffin's failure, built into the project DNA:
    - No single company holds >40% of committers
 
 2. Release early, release often
-   - Monthly releases during incubation
+   - Monthly releases
    - No multi-year rewrites. Incremental improvements only.
 
 3. Onboarding pipeline
