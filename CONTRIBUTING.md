@@ -45,18 +45,14 @@ Use [GitHub Issues](https://github.com/provero-org/provero/issues) to report bug
 - Use type hints for all public APIs
 - Run `ruff check` and `ruff format` before committing
 
-### Apache License Headers
+### License Headers
 
 All new `.py` files must include the Apache 2.0 license header at the top:
 
 ```python
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #   http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -131,7 +127,7 @@ Edit `docs/demo.tape` to change the recording script. The tape file is self-docu
 
 ## Contributor License Agreement
 
-By contributing to Provero, you agree that your contributions will be licensed under the Apache License 2.0. When the project enters Apache Incubation, contributors will be asked to sign the Apache Individual Contributor License Agreement (ICLA).
+By contributing to Provero, you agree that your contributions will be licensed under the Apache License 2.0.
 
 ## Code of Conduct
 
