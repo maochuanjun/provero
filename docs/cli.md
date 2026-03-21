@@ -166,6 +166,71 @@ provero contract diff OLD_CONFIG NEW_CONFIG
 provero contract diff v1.yaml v2.yaml
 ```
 
+## provero watch
+
+Continuously run checks on a polling interval. Useful for monitoring and CI.
+
+```bash
+provero watch                        # every 5 minutes (default)
+provero watch --interval 30s         # every 30 seconds
+provero watch -c staging.yaml -i 1m  # custom config, every minute
+provero watch --count 3 --format json  # run 3 times, output JSONL
+```
+
+| Option | Short | Default | Description |
+|--------|-------|---------|-------------|
+| `--interval` | `-i` | `5m` | Polling interval (30s, 5m, 1h, 1h30m) |
+| `--count` | `-n` | | Run exactly N times then exit |
+| `--config` | `-c` | `provero.yaml` | Config file path |
+| `--format` | `-f` | `table` | Output format: `table`, `json`, `csv` |
+| `--suite` | `-s` | | Run a specific suite only |
+| `--no-store` | | `false` | Don't persist results |
+
+Press `Ctrl+C` to stop. Exit code 1 if any run has failures.
+
+## provero import soda
+
+Convert a SodaCL configuration file to Provero format.
+
+```bash
+provero import soda checks.yaml                      # print to stdout
+provero import soda checks.yaml -o provero.yaml      # write to file
+provero import soda checks.yaml --source-type postgres  # set source type
+```
+
+Supported SodaCL check mappings:
+
+| SodaCL | Provero |
+|--------|---------|
+| `missing_count(col) = 0` | `not_null: col` |
+| `duplicate_count(col) = 0` | `unique: col` |
+| `missing_percent(col) < N%` | `completeness: {column, min}` |
+| `invalid_count(col) = 0` + `valid values` | `accepted_values` |
+| `row_count > N` | `row_count: {min}` |
+| `freshness(col) < Xh` | `freshness: {column, max_age}` |
+
+Unsupported checks are included as comments in the output.
+
+## provero export dbt
+
+Generate dbt `schema.yml` test definitions from Provero checks.
+
+```bash
+provero export dbt                          # read provero.yaml, print to stdout
+provero export dbt -c checks.yaml -o schema.yml  # custom input/output
+```
+
+Supported mappings:
+
+| Provero | dbt test |
+|---------|----------|
+| `not_null` | `not_null` |
+| `unique` | `unique` |
+| `accepted_values` | `accepted_values` |
+| `range` | `dbt_utils.expression_is_true` |
+
+Checks without a dbt equivalent are included as YAML comments.
+
 ## provero version
 
 Show the installed Provero version.
