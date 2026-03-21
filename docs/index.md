@@ -10,7 +10,7 @@ A vendor-neutral, declarative data quality engine.
 
 ## Why Provero?
 
-- **14 check types** covering completeness, uniqueness, validity, freshness, volume, anomaly detection, and custom SQL
+- **16 check types** covering completeness, uniqueness, validity, freshness, volume, anomaly detection, email validation, referential integrity, and custom SQL
 - **3 connectors**: DuckDB (files + in-memory), PostgreSQL, Pandas/Polars DataFrame
 - **SQL batch optimizer** compiles N checks into 1 query
 - **Data contracts** with schema validation, SLA enforcement, and contract diff

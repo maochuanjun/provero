@@ -75,6 +75,9 @@ Score: 100/100 | 7 passed, 0 failed | 22ms
 - **Configurable severity**: info, warning, critical, blocker per check
 - **JSON Schema validation** for provero.yaml
 - **Airflow provider**: ProveroCheckOperator + @provero_check decorator
+- **SodaCL migration**: `provero import soda` converts configs in one command
+- **dbt interop**: `provero export dbt` generates schema.yml test definitions
+- **Continuous monitoring**: `provero watch` polls checks on interval
 
 ## Check Types
 
@@ -186,6 +189,9 @@ Anomaly detection uses the result store to compare current values against histor
 | `provero history` | Show historical check results |
 | `provero contract validate` | Validate data contracts against live data |
 | `provero contract diff` | Compare two contract versions |
+| `provero watch` | Continuously run checks on interval |
+| `provero import soda` | Convert SodaCL config to Provero format |
+| `provero export dbt` | Generate dbt schema.yml from checks |
 | `provero version` | Show version |
 
 ## Alerts
